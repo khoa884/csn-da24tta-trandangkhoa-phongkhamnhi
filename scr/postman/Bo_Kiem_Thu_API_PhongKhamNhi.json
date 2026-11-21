@@ -1,0 +1,736 @@
+{
+  "info": {
+    "name": "Bộ kiểm thử API Quản lý Phòng khám Nhi (RBAC & Bearer Token)",
+    "_postman_id": "a1c75ff8-78aa-4f20-a6b4-e1cbc5d393e2",
+    "description": "Bộ kiểm thử 24 yêu cầu có pm.test(...) kiểm tra HTTP status, Bearer Token, RBAC, IDOR, Transaction hoàn kho, BigDecimal và ràng buộc dữ liệu nhi khoa - Trần Đăng Khoa (110124097)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "token_admin", "value": "" },
+    { "key": "token_letan", "value": "" },
+    { "key": "token_phuhuynh", "value": "" },
+    { "key": "ma_phieu_kham", "value": "2" },
+    { "key": "ma_toa_thuoc", "value": "1" },
+    { "key": "ngay_hen_test", "value": "2027-07-15" },
+    { "key": "gio_hen_test", "value": "09:30" }
+  ],
+  "item": [
+    {
+      "name": "1. Đăng nhập Bác sĩ (Lưu Bearer Token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Đăng nhập thành công với vai trò BAC_SI', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "    pm.expect(res.vaiTro).to.eql('BAC_SI');",
+              "    pm.expect(res.token).to.be.a('string').and.not.empty;",
+              "});",
+              "if (res && res.token) { pm.collectionVariables.set('token', res.token); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json; charset=UTF-8" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenDangNhap\": \"bacsi1\",\n  \"matKhau\": \"123456\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/dang-nhap", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "dang-nhap"] }
+      }
+    },
+    {
+      "name": "2. Đăng nhập Quản trị viên Admin (Lưu Token Admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Đăng nhập thành công với vai trò QUAN_TRI', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "    pm.expect(res.vaiTro).to.eql('QUAN_TRI');",
+              "    pm.expect(res.token).to.be.a('string').and.not.empty;",
+              "});",
+              "if (res && res.token) { pm.collectionVariables.set('token_admin', res.token); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json; charset=UTF-8" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenDangNhap\": \"admin\",\n  \"matKhau\": \"123456\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/dang-nhap", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "dang-nhap"] }
+      }
+    },
+    {
+      "name": "3. Đăng nhập Lễ tân (Lưu Token Lễ tân)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Đăng nhập thành công với vai trò LE_TAN', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "    pm.expect(res.vaiTro).to.eql('LE_TAN');",
+              "});",
+              "if (res && res.token) { pm.collectionVariables.set('token_letan', res.token); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json; charset=UTF-8" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenDangNhap\": \"letan1\",\n  \"matKhau\": \"123456\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/dang-nhap", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "dang-nhap"] }
+      }
+    },
+    {
+      "name": "4. Đăng nhập Phụ huynh (Lưu Token Phụ huynh)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Đăng nhập thành công với vai trò PHU_HUYNH', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "    pm.expect(res.vaiTro).to.eql('PHU_HUYNH');",
+              "});",
+              "if (res && res.token) { pm.collectionVariables.set('token_phuhuynh', res.token); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json; charset=UTF-8" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenDangNhap\": \"0901234567\",\n  \"matKhau\": \"123456\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/dang-nhap", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "dang-nhap"] }
+      }
+    },
+    {
+      "name": "5. Đăng nhập SAI mật khẩu (Trả 401 hoặc 429)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Từ chối đăng nhập sai (401 hoặc 429)', function () {",
+              "    pm.expect([401, 429]).to.include(pm.response.code);",
+              "});",
+              "var res = pm.response.json();",
+              "pm.test('thanhCong phải là false', function () {",
+              "    pm.expect(res.thanhCong).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json; charset=UTF-8" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenDangNhap\": \"letan1\",\n  \"matKhau\": \"mat_khau_sai\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/dang-nhap", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "dang-nhap"] }
+      }
+    },
+    {
+      "name": "6. Mở khóa tài khoản Lễ tân (Chỉ QUAN_TRI)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Mở khóa thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maTaiKhoan\": 3\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/tai-khoan", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "tai-khoan"] }
+      }
+    },
+    {
+      "name": "7. Tìm kiếm Bệnh nhi theo SĐT bố mẹ (1 SĐT - Nhiều bé)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Trả về danh sách các bé thuộc SĐT 0901234567', function () {",
+              "    pm.expect(res).to.be.an('array');",
+              "    pm.expect(res.length).to.be.at.least(2);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "http://localhost:8080/api/benh-nhi?tuKhoa=0901234567",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "benh-nhi"],
+          "query": [{ "key": "tuKhoa", "value": "0901234567" }]
+        }
+      }
+    },
+    {
+      "name": "8. Chặn IDOR Phụ huynh xem phiếu khám gia đình khác (403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Chặn truy cập chéo gia đình với HTTP 403', function () { pm.response.to.have.status(403); });",
+              "var res = pm.response.json();",
+              "pm.test('thanhCong phải là false', function () { pm.expect(res.thanhCong).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_phuhuynh}}" }],
+        "url": {
+          "raw": "http://localhost:8080/api/phieu-kham?maBenhNhi=999999",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "phieu-kham"],
+          "query": [{ "key": "maBenhNhi", "value": "999999" }]
+        }
+      }
+    },
+    {
+      "name": "9. Chặn PUT /api/benh-nhi rỗng ngày sinh (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Từ chối ngày sinh rỗng với HTTP 400', function () { pm.response.to.have.status(400); });",
+              "var res = pm.response.json();",
+              "pm.test('thanhCong phải là false', function () { pm.expect(res.thanhCong).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token_letan}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maBenhNhi\": 1,\n  \"hoTenBe\": \"Phạm Gia Bảo\",\n  \"ngaySinh\": \"\",\n  \"gioiTinh\": \"Nam\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/benh-nhi", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "benh-nhi"] }
+      }
+    },
+    {
+      "name": "10. Tiếp nhận Thêm mới Bệnh nhi (Transaction 3 bảng)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Lưu hồ sơ bệnh nhi thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hoTenBe\": \"Lê Minh Khang\",\n  \"ngaySinh\": \"2022-10-15\",\n  \"gioiTinh\": \"Nam\",\n  \"tienSuBenh\": \"Không dị ứng thuốc\",\n  \"hoTenPhuHuynh\": \"Lê Văn Nam\",\n  \"soDienThoai\": \"0988777666\",\n  \"diaChi\": \"Phường 1, TP. Vĩnh Long\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/benh-nhi", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "benh-nhi"] }
+      }
+    },
+    {
+      "name": "11. Cập nhật Hồ sơ & Tiền sử bệnh của Bé #1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Cập nhật hồ sơ thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maBenhNhi\": 1,\n  \"hoTenBe\": \"Phạm Gia Bảo\",\n  \"ngaySinh\": \"2021-05-15\",\n  \"gioiTinh\": \"Nam\",\n  \"tienSuBenh\": \"Dị ứng kháng sinh \\\"Penicillin\\\", theo dõi kỹ khi sốt cao.\",\n  \"hoTenPhuHuynh\": \"Phạm Văn Hùng\",\n  \"diaChi\": \"48 Phạm Thái Bường, Phường 4, TP. Vĩnh Long\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/benh-nhi", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "benh-nhi"] }
+      }
+    },
+    {
+      "name": "12. Đặt lịch hẹn khám mới (Khung giờ ngẫu nhiên chưa trùng)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var ngay = String((Math.floor(Date.now() / 1000) % 28) + 1).padStart(2, '0');",
+              "var hh = String(Math.floor(Math.random() * 10) + 8).padStart(2, '0');",
+              "var mm = String(Math.floor(Math.random() * 60)).padStart(2, '0');",
+              "pm.collectionVariables.set('ngay_hen_test', '2027-07-' + ngay);",
+              "pm.collectionVariables.set('gio_hen_test', hh + ':' + mm);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Đặt lịch hẹn thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maBenhNhi\": 1,\n  \"maBacSi\": 2,\n  \"ngayHen\": \"{{ngay_hen_test}}\",\n  \"gioHen\": \"{{gio_hen_test}}\",\n  \"lyDoKham\": \"Tái khám kiểm tra phổi và cân nặng\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/lich-hen", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "lich-hen"] }
+      }
+    },
+    {
+      "name": "13. Chặn đặt lịch hẹn trùng bác sĩ và khung giờ (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Chặn trùng lịch hẹn với HTTP 400', function () { pm.response.to.have.status(400); });",
+              "var res = pm.response.json();",
+              "pm.test('thanhCong phải là false', function () { pm.expect(res.thanhCong).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maBenhNhi\": 2,\n  \"maBacSi\": 2,\n  \"ngayHen\": \"{{ngay_hen_test}}\",\n  \"gioHen\": \"{{gio_hen_test}}\",\n  \"lyDoKham\": \"Thử đặt trùng khung giờ\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/lich-hen", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "lich-hen"] }
+      }
+    },
+    {
+      "name": "14. Xem Danh mục Thuốc nhi khoa (GET /api/thuoc)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Danh mục thuốc là mảng không rỗng', function () {",
+              "    pm.expect(res).to.be.an('array').and.not.empty;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:8080/api/thuoc", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "thuoc"] }
+      }
+    },
+    {
+      "name": "15. Chặn POST /api/phieu-kham với tiền khám âm (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Từ chối tiền khám âm với HTTP 400', function () { pm.response.to.have.status(400); });",
+              "var res = pm.response.json();",
+              "pm.test('thanhCong phải là false', function () { pm.expect(res.thanhCong).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maBenhNhi\": 2,\n  \"maBacSi\": 2,\n  \"canNangKg\": 11.5,\n  \"trieuChung\": \"Bé ho nhẹ\",\n  \"chanDoan\": \"Cảm lạnh\",\n  \"tienKham\": -50000\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/phieu-kham", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "phieu-kham"] }
+      }
+    },
+    {
+      "name": "16. Bác sĩ Tạo Phiếu khám chuẩn BigDecimal (Lưu ma_phieu_kham)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Tạo phiếu khám thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "    pm.expect(res.maPhieuKham).to.be.above(0);",
+              "});",
+              "if (res && res.maPhieuKham) { pm.collectionVariables.set('ma_phieu_kham', String(res.maPhieuKham)); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maBenhNhi\": 2,\n  \"maBacSi\": 2,\n  \"canNangKg\": 11.55,\n  \"trieuChung\": \"Bé ho nhẹ, sổ mũi trong\",\n  \"chanDoan\": \"Cảm lạnh thông thường\",\n  \"loiDanBacSi\": \"Giữ ấm cổ và ngực\\nTái khám sau 3 ngày\",\n  \"tienKham\": 100000\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/phieu-kham", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "phieu-kham"] }
+      }
+    },
+    {
+      "name": "17. Bác sĩ Kê thuốc vào Toa (Transaction FOR UPDATE)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Kê thuốc thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maPhieuKham\": {{ma_phieu_kham}},\n  \"maThuoc\": 3,\n  \"soLuong\": 2,\n  \"lieuLuongDung\": \"Ngày uống 2 lần, mỗi lần 1 ống (Cân nặng 11.55kg)\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/toa-thuoc", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "toa-thuoc"] }
+      }
+    },
+    {
+      "name": "18. Xem chi tiết Toa thuốc & Lưu ma_toa_thuoc",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Trả về chi tiết toa thuốc của phiếu khám', function () {",
+              "    pm.expect(res).to.be.an('array').and.not.empty;",
+              "});",
+              "if (Array.isArray(res) && res.length > 0) {",
+              "    pm.collectionVariables.set('ma_toa_thuoc', String(res[res.length - 1].maToaThuoc));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "http://localhost:8080/api/toa-thuoc?maPhieuKham={{ma_phieu_kham}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "toa-thuoc"],
+          "query": [{ "key": "maPhieuKham", "value": "{{ma_phieu_kham}}" }]
+        }
+      }
+    },
+    {
+      "name": "19. Chặn RBAC Lễ tân xóa dòng thuốc khỏi toa (403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Chặn LE_TAN xóa thuốc khỏi toa với HTTP 403', function () { pm.response.to.have.status(403); });",
+              "var res = pm.response.json();",
+              "pm.test('thanhCong phải là false', function () { pm.expect(res.thanhCong).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_letan}}" }],
+        "url": {
+          "raw": "http://localhost:8080/api/toa-thuoc?maToaThuoc={{ma_toa_thuoc}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "toa-thuoc"],
+          "query": [{ "key": "maToaThuoc", "value": "{{ma_toa_thuoc}}" }]
+        }
+      }
+    },
+    {
+      "name": "20. Bác sĩ Hủy dòng thuốc kê nhầm & hoàn kho (DELETE /api/toa-thuoc)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Hủy dòng thuốc và hoàn tồn kho thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "http://localhost:8080/api/toa-thuoc?maToaThuoc={{ma_toa_thuoc}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "toa-thuoc"],
+          "query": [{ "key": "maToaThuoc", "value": "{{ma_toa_thuoc}}" }]
+        }
+      }
+    },
+    {
+      "name": "21. Xác nhận Thu tiền viện phí (PUT /api/phieu-kham)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Thu tiền viện phí thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"maPhieuKham\": {{ma_phieu_kham}}\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/phieu-kham", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "phieu-kham"] }
+      }
+    },
+    {
+      "name": "22. Xem Báo cáo Thống kê Doanh thu (GET /api/thong-ke - QUAN_TRI)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Đủ số liệu doanh thu ngày và tích lũy cho QUAN_TRI', function () {",
+              "    pm.expect(res).to.have.property('soCaDaThu');",
+              "    pm.expect(res).to.have.property('tongDoanhThu');",
+              "    pm.expect(res).to.have.property('soCaTichLuy');",
+              "    pm.expect(res).to.have.property('tongDoanhThuTichLuy');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+        "url": { "raw": "http://localhost:8080/api/thong-ke", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "thong-ke"] }
+      }
+    },
+    {
+      "name": "23. Đổi mật khẩu với mật khẩu hiện tại sai (Trả 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Từ chối mật khẩu cũ sai với HTTP 400', function () { pm.response.to.have.status(400); });",
+              "var res = pm.response.json();",
+              "pm.test('thanhCong phải là false', function () { pm.expect(res.thanhCong).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"matKhauCu\": \"sai_mat_khau_hien_tai\",\n  \"matKhauMoi\": \"MatKhauMoi@2026\"\n}"
+        },
+        "url": { "raw": "http://localhost:8080/api/doi-mat-khau", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "doi-mat-khau"] }
+      }
+    },
+    {
+      "name": "24. Đăng xuất (Thu hồi Bearer Token & Xác nhận 401 khi dùng lại)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200 OK', function () { pm.response.to.have.status(200); });",
+              "var res = pm.response.json();",
+              "pm.test('Đăng xuất thành công', function () {",
+              "    pm.expect(res.thanhCong).to.eql(true);",
+              "});",
+              "pm.sendRequest({",
+              "    url: 'http://localhost:8080/api/benh-nhi',",
+              "    method: 'GET',",
+              "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
+              "}, function (err, response) {",
+              "    pm.test('Token sau khi đăng xuất phải bị từ chối với HTTP 401', function () {",
+              "        pm.expect(err).to.be.null;",
+              "        pm.expect(response.code).to.eql(401);",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:8080/api/dang-xuat", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "dang-xuat"] }
+      }
+    }
+  ]
+}

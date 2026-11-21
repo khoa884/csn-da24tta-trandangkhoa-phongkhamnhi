@@ -1,0 +1,4 @@
+# Sao chép tệp này thành scr/config/database.properties hoặc thiết lập biến môi trường DB_URL, DB_USER, DB_PASSWORD
+db.url=jdbc:mysql://localhost:3306/phong_kham_nhi?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+db.user=root
+db.password=

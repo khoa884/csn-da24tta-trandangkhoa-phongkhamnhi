@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Tra Cứu Hồ Sơ Bệnh Nhi</title>
+    <link rel="stylesheet" href="css/giao_dien.css">
+</head>
+<body>
+    <div id="man-hinh-dn-phu-huynh" class="khung-dang-nhap">
+        <div class="the-khu-vuc">
+            <h2 class="tieu-de-dang-nhap">Cổng Tra Cứu Phụ Huynh</h2>
+            <p class="mo-ta-dang-nhap">Theo dõi lịch sử cân nặng, kết quả khám, đơn thuốc và lịch hẹn tái khám của bé</p>
+            <div class="nhom-truong">
+                <label for="ph-so-dien-thoai">Số điện thoại đã đăng ký (*)</label>
+                <input type="text" id="ph-so-dien-thoai" placeholder="Nhập số điện thoại">
+            </div>
+            <div class="nhom-truong">
+                <label for="ph-mat-khau">Mật khẩu (*)</label>
+                <input type="password" id="ph-mat-khau" placeholder="Nhập mật khẩu">
+            </div>
+            <p id="ph-thong-bao-loi" class="thong-bao-loi"></p>
+            <button class="nut-bam nut-xanh-la nut-day-du" onclick="dangNhapPhuHuynh()">Đăng nhập xem hồ sơ</button>
+            <div class="chan-form-link">
+                <a href="index.html" class="lien-ket-chinh">Quay lại màn hình nhân viên phòng khám</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="man-hinh-ho-so-be" class="an-di">
+        <div class="thanh-dieu-huong">
+            <div class="thuong-hieu">
+                <span class="bieu-tuong-y-te" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </span>
+                <span>Sổ Sức Khỏe Nhi Khoa</span>
+            </div>
+            <div class="thanh-tac-vu-phai">
+                <span id="ph-loi-chao" class="nhan-nguoi-dung"></span>
+                <button class="nut-bam nut-do" onclick="dangXuatPhuHuynh()">Đăng xuất</button>
+            </div>
+        </div>
+
+        <div class="khung-chinh">
+            <div id="ph-khu-vuc-du-lieu">
+                <div class="the-khu-vuc">
+                    <h3 class="tieu-de-muc">1. Hồ sơ bệnh nhi trong gia đình</h3>
+                    <p class="mo-ta-dang-nhap">Chọn tên bé để xem lịch hẹn và lịch sử khám bệnh:</p>
+                    <div id="danh-sach-nut-chon-be" class="thanh-the-chon"></div>
+                    <div id="thong-tin-co-ban-be" class="hop-thong-tin-be"></div>
+                </div>
+
+                <div class="the-khu-vuc">
+                    <h3 class="tieu-de-muc">2. Lịch hẹn khám &amp; tái khám</h3>
+                    <div class="khung-bang">
+                        <table>
+                            <thead>
+                                <tr><th>Mã lịch</th><th>Ngày hẹn</th><th>Giờ hẹn</th><th>Bác sĩ phụ trách</th><th>Lý do khám</th><th>Trạng thái</th></tr>
+                            </thead>
+                            <tbody id="ph-bang-lich-hen"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="the-khu-vuc">
+                    <h3 class="tieu-de-muc">3. Lịch sử khám, cân nặng &amp; đơn thuốc</h3>
+                    <div id="ph-danh-sach-phieu-kham"></div>
+                </div>
+            </div>
+
+            <div id="ph-canh-bao-doi-mk" class="canh-bao-di-ung an-di">
+                Tài khoản mới tạo cần đổi mật khẩu tạm ở lần đăng nhập đầu tiên trước khi xem hồ sơ bệnh nhi.
+            </div>
+
+            <div class="the-khu-vuc">
+                <h3 class="tieu-de-muc">4. Đổi mật khẩu tra cứu</h3>
+                <div class="luoi-nhap-lieu">
+                    <div><label for="ph-mk-cu">Mật khẩu hiện tại (*)</label><input type="password" id="ph-mk-cu" placeholder="Nhập mật khẩu đang dùng"></div>
+                    <div><label for="ph-mk-moi">Mật khẩu mới (*)</label><input type="password" id="ph-mk-moi" placeholder="Tối thiểu 6 ký tự"></div>
+                    <div><label for="ph-mk-xac-nhan">Nhập lại mật khẩu mới (*)</label><input type="password" id="ph-mk-xac-nhan" placeholder="Nhập lại mật khẩu mới"></div>
+                </div>
+                <p id="ph-thong-bao-doi-mk" class="thong-bao-loi"></p>
+                <button class="nut-bam" onclick="doiMatKhauPhuHuynh()">Cập nhật mật khẩu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_GOC = window.location.origin.startsWith("http")
+            ? window.location.origin + "/api"
+            : "http://localhost:8080/api";
+        let sdtPhuHuynhDangNhap = "";
+        let tokenPhuHuynh = "";
+        let cacBeTrongGiaDinh = [];
+
+        function escapeHTML(chuoi) {
+            if (chuoi === null || chuoi === undefined) return "";
+            return String(chuoi)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function taoHeaderPhuHuynh() {
+            return {
+                "Content-Type": "application/json; charset=UTF-8",
+                "Authorization": "Bearer " + tokenPhuHuynh
+            };
+        }
+
+        async function dangNhapPhuHuynh() {
+            let sdt = document.getElementById("ph-so-dien-thoai").value.trim();
+            let matKhau = document.getElementById("ph-mat-khau").value;
+            let theLoi = document.getElementById("ph-thong-bao-loi");
+
+            if (sdt === "" || matKhau.trim() === "") {
+                theLoi.innerText = "Vui lòng nhập đầy đủ số điện thoại và mật khẩu.";
+                return;
+            }
+
+            try {
+                let phanHoi = await fetch(API_GOC + "/dang-nhap", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    body: JSON.stringify({ tenDangNhap: sdt, matKhau: matKhau })
+                });
+                let kq = await phanHoi.json();
+
+                if (kq.thanhCong === true) {
+                    if (kq.vaiTro !== "PHU_HUYNH") {
+                        if (kq.token) {
+                            try {
+                                await fetch(API_GOC + "/dang-xuat", {
+                                    method: "POST",
+                                    headers: { "Authorization": "Bearer " + kq.token }
+                                });
+                            } catch (loi) {
+                                // Bỏ qua lỗi mạng khi thu hồi phiên đăng nhập nhầm cổng
+                            }
+                        }
+                        theLoi.innerText = "Cổng này dành riêng cho tài khoản Phụ huynh.";
+                        return;
+                    }
+                    sdtPhuHuynhDangNhap = sdt;
+                    tokenPhuHuynh = kq.token || "";
+                    theLoi.innerText = "";
+                    document.getElementById("man-hinh-dn-phu-huynh").classList.add("an-di");
+                    document.getElementById("man-hinh-ho-so-be").classList.remove("an-di");
+                    document.getElementById("ph-loi-chao").innerText = "Phụ huynh: " + kq.hoTen + " (" + sdt + ")";
+                    if (kq.phaiDoiMatKhau === true) {
+                        document.getElementById("ph-khu-vuc-du-lieu").classList.add("an-di");
+                        document.getElementById("ph-canh-bao-doi-mk").classList.remove("an-di");
+                        document.getElementById("ph-mk-cu").focus();
+                    } else {
+                        document.getElementById("ph-canh-bao-doi-mk").classList.add("an-di");
+                        document.getElementById("ph-khu-vuc-du-lieu").classList.remove("an-di");
+                        await taiDanhSachConCuaPhuHuynh();
+                    }
+                } else {
+                    theLoi.innerText = kq.thongBao;
+                }
+            } catch (loi) {
+                theLoi.innerText = "Không kết nối được máy chủ phòng khám (cổng 8080).";
+            }
+        }
+
+        async function dangXuatPhuHuynh() {
+            let tokenCanHuy = tokenPhuHuynh;
+            sdtPhuHuynhDangNhap = "";
+            tokenPhuHuynh = "";
+            cacBeTrongGiaDinh = [];
+            if (tokenCanHuy) {
+                try {
+                    await fetch(API_GOC + "/dang-xuat", {
+                        method: "POST",
+                        headers: { "Authorization": "Bearer " + tokenCanHuy }
+                    });
+                } catch (loi) {
+                    // Bỏ qua lỗi mạng khi đăng xuất
+                }
+            }
+            ["ph-mat-khau", "ph-mk-cu", "ph-mk-moi", "ph-mk-xac-nhan"].forEach(function(id) {
+                document.getElementById(id).value = "";
+            });
+            ["ph-thong-bao-loi", "ph-thong-bao-doi-mk", "ph-loi-chao", "danh-sach-nut-chon-be",
+             "thong-tin-co-ban-be", "ph-bang-lich-hen", "ph-danh-sach-phieu-kham"].forEach(function(id) {
+                document.getElementById(id).innerHTML = "";
+            });
+            document.getElementById("ph-canh-bao-doi-mk").classList.add("an-di");
+            document.getElementById("ph-khu-vuc-du-lieu").classList.remove("an-di");
+            document.getElementById("man-hinh-ho-so-be").classList.add("an-di");
+            document.getElementById("man-hinh-dn-phu-huynh").classList.remove("an-di");
+        }
+
+        async function taiDanhSachConCuaPhuHuynh() {
+            try {
+                let phanHoi = await fetch(API_GOC + "/benh-nhi?tuKhoa=" + encodeURIComponent(sdtPhuHuynhDangNhap), {
+                    headers: taoHeaderPhuHuynh()
+                });
+                if (!tokenPhuHuynh) return;
+                if (phanHoi.status === 401) {
+                    dangXuatPhuHuynh();
+                    return;
+                }
+                let danhSachTimDuoc = await phanHoi.json();
+                cacBeTrongGiaDinh = danhSachTimDuoc.filter(function(b) { return b.soDienThoai === sdtPhuHuynhDangNhap; });
+
+                let nutHTML = "";
+                for (let i = 0; i < cacBeTrongGiaDinh.length; i++) {
+                    let b = cacBeTrongGiaDinh[i];
+                    nutHTML += "<button id='nut-be-" + b.maBenhNhi + "' class='nut-the' onclick='xemChiTietMotBe(" + b.maBenhNhi + ")'>"
+                            + escapeHTML(b.hoTenBe) + " (" + escapeHTML(b.gioiTinh) + ", " + escapeHTML(b.ngaySinh) + ")</button>";
+                }
+                document.getElementById("danh-sach-nut-chon-be").innerHTML = nutHTML;
+
+                if (cacBeTrongGiaDinh.length > 0) {
+                    xemChiTietMotBe(cacBeTrongGiaDinh[0].maBenhNhi);
+                }
+            } catch (loi) {
+                console.log("Lỗi tải danh sách bệnh nhi: " + loi);
+            }
+        }
+
+        async function xemChiTietMotBe(maBenhNhiChon) {
+            for (let i = 0; i < cacBeTrongGiaDinh.length; i++) {
+                let ma = cacBeTrongGiaDinh[i].maBenhNhi;
+                let nut = document.getElementById("nut-be-" + ma);
+                if (nut) nut.classList.remove("dang-chon");
+                if (ma === maBenhNhiChon) {
+                    if (nut) nut.classList.add("dang-chon");
+                    let b = cacBeTrongGiaDinh[i];
+                    document.getElementById("thong-tin-co-ban-be").innerHTML =
+                        "<b>Hồ sơ bé:</b> " + escapeHTML(b.hoTenBe)
+                        + " | <b>Ngày sinh:</b> " + escapeHTML(b.ngaySinh)
+                        + " | <b>Giới tính:</b> " + escapeHTML(b.gioiTinh)
+                        + " | <b>Địa chỉ:</b> " + escapeHTML(b.diaChi || "Chưa cập nhật")
+                        + "<br><b>Tiền sử bệnh &amp; dị ứng thuốc:</b> <span class='chu-canh-bao'>" + escapeHTML(b.tienSuBenh || "Chưa ghi nhận") + "</span>";
+                }
+            }
+
+            try {
+                let phLich = await fetch(API_GOC + "/lich-hen", { headers: taoHeaderPhuHuynh() });
+                if (!tokenPhuHuynh) return;
+                if (phLich.status === 401) {
+                    return dangXuatPhuHuynh();
+                }
+                let dsLich = await phLich.json();
+                let htmlLich = "";
+                for (let i = 0; i < dsLich.length; i++) {
+                    let l = dsLich[i];
+                    if (l.maBenhNhi === maBenhNhiChon) {
+                        htmlLich += "<tr><td>#" + l.maLichHen + "</td><td><b>" + escapeHTML(l.ngayHen) + "</b></td>"
+                                 + "<td class='chu-nhan'>" + escapeHTML(l.gioHen) + "</td><td>" + escapeHTML(l.hoTenBacSi) + "</td>"
+                                 + "<td>" + escapeHTML(l.lyDoKham) + "</td><td><b>" + escapeHTML(l.trangThai) + "</b></td></tr>";
+                    }
+                }
+                if (htmlLich === "") {
+                    htmlLich = "<tr><td colspan='6'>Hiện tại bé chưa có lịch hẹn tái khám.</td></tr>";
+                }
+                document.getElementById("ph-bang-lich-hen").innerHTML = htmlLich;
+
+                let phPhieu = await fetch(API_GOC + "/phieu-kham?maBenhNhi=" + maBenhNhiChon, { headers: taoHeaderPhuHuynh() });
+                if (!tokenPhuHuynh) return;
+                if (phPhieu.status === 401) {
+                    return dangXuatPhuHuynh();
+                }
+                let dsPhieu = await phPhieu.json();
+
+                // Tải toàn bộ toa thuốc của bé trong 1 lần gọi để tránh lỗi lặp N+1 request
+                let phToaTatCa = await fetch(API_GOC + "/toa-thuoc?maBenhNhi=" + maBenhNhiChon, { headers: taoHeaderPhuHuynh() });
+                let dsToaTatCa = phToaTatCa.ok ? await phToaTatCa.json() : [];
+                let toaTheoPhieu = {};
+                for (let k = 0; k < dsToaTatCa.length; k++) {
+                    let dong = dsToaTatCa[k];
+                    if (!toaTheoPhieu[dong.maPhieuKham]) toaTheoPhieu[dong.maPhieuKham] = [];
+                    toaTheoPhieu[dong.maPhieuKham].push(dong);
+                }
+
+                let htmlPhieu = "";
+                for (let i = 0; i < dsPhieu.length; i++) {
+                    let p = dsPhieu[i];
+                    let dsToa = toaTheoPhieu[p.maPhieuKham] || [];
+
+                    let bangThuoc = "<div class='khung-bang'><table><thead><tr><th>Tên thuốc</th><th>Số lượng</th><th>Đơn giá lúc kê</th><th>Thành tiền</th><th>Hướng dẫn dùng</th></tr></thead><tbody>";
+                    for (let j = 0; j < dsToa.length; j++) {
+                        let t = dsToa[j];
+                        bangThuoc += "<tr><td><b>" + escapeHTML(t.tenThuoc) + "</b></td><td>" + t.soLuong + " " + escapeHTML(t.donViTinh) + "</td>"
+                                  + "<td>" + t.donGiaLucKe.toLocaleString("vi-VN") + " đ</td><td>" + t.thanhTien.toLocaleString("vi-VN") + " đ</td>"
+                                  + "<td class='chu-nhan'>" + escapeHTML(t.lieuLuongDung) + "</td></tr>";
+                    }
+                    if (dsToa.length === 0) {
+                        bangThuoc += "<tr><td colspan='5'>Lần khám này bác sĩ không kê thuốc.</td></tr>";
+                    }
+                    bangThuoc += "</tbody></table></div>";
+
+                    htmlPhieu += "<div class='the-dot-kham'>"
+                              + "<h4>Phiếu khám #" + p.maPhieuKham + " - Ngày khám: " + escapeHTML(p.ngayKham) + " | Bác sĩ: " + escapeHTML(p.hoTenBacSi) + "</h4>"
+                              + "<p class='chi-so-dot-kham'><b>Cân nặng:</b> <span class='chu-nhan'>" + p.canNangKg + " kg</span>"
+                              + " | <b>Triệu chứng:</b> " + escapeHTML(p.trieuChung)
+                              + " | <b>Chẩn đoán:</b> <span class='chu-canh-bao'>" + escapeHTML(p.chanDoan) + "</span></p>"
+                              + "<p class='chi-so-dot-kham'><b>Lời dặn của bác sĩ:</b> " + escapeHTML(p.loiDanBacSi || "Không có") + "</p>"
+                              + bangThuoc
+                              + "<p class='tong-ket-dot-kham'>Tổng viện phí: <span class='chu-tong-tien'>" + p.tongVienPhi.toLocaleString("vi-VN") + " VNĐ</span> (" + escapeHTML(p.trangThaiPhieu) + ")</p>"
+                              + "</div>";
+                }
+
+                if (htmlPhieu === "") {
+                    htmlPhieu = "<p>Chưa có lịch sử phiếu khám và toa thuốc.</p>";
+                }
+                document.getElementById("ph-danh-sach-phieu-kham").innerHTML = htmlPhieu;
+            } catch (loi) {
+                console.log("Lỗi tải chi tiết hồ sơ bé: " + loi);
+            }
+        }
+
+        async function doiMatKhauPhuHuynh() {
+            let matKhauCu = document.getElementById("ph-mk-cu").value;
+            let matKhauMoi = document.getElementById("ph-mk-moi").value;
+            let xacNhan = document.getElementById("ph-mk-xac-nhan").value;
+            let theThongBao = document.getElementById("ph-thong-bao-doi-mk");
+            theThongBao.classList.remove("chu-thanh-cong");
+            theThongBao.classList.add("chu-loi");
+
+            if (!matKhauCu || !matKhauMoi || !xacNhan) {
+                theThongBao.innerText = "Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới.";
+                return;
+            }
+            if (matKhauMoi.trim() === "" || matKhauMoi !== matKhauMoi.trim()) {
+                theThongBao.innerText = "Mật khẩu mới không được chứa khoảng trắng ở đầu hoặc cuối.";
+                return;
+            }
+            if (matKhauMoi.length < 6) {
+                theThongBao.innerText = "Mật khẩu mới phải có tối thiểu 6 ký tự.";
+                return;
+            }
+            if (matKhauMoi !== xacNhan) {
+                theThongBao.innerText = "Mật khẩu mới nhập lại chưa khớp.";
+                return;
+            }
+
+            try {
+                let phanHoi = await fetch(API_GOC + "/doi-mat-khau", {
+                    method: "POST",
+                    headers: taoHeaderPhuHuynh(),
+                    body: JSON.stringify({ matKhauCu: matKhauCu, matKhauMoi: matKhauMoi })
+                });
+                if (phanHoi.status === 401) {
+                    dangXuatPhuHuynh();
+                    return;
+                }
+                let kq = await phanHoi.json();
+                theThongBao.classList.toggle("chu-thanh-cong", Boolean(kq.thanhCong));
+                theThongBao.classList.toggle("chu-loi", !kq.thanhCong);
+                theThongBao.innerText = kq.thongBao;
+                if (kq.thanhCong) {
+                    document.getElementById("ph-mk-cu").value = "";
+                    document.getElementById("ph-mk-moi").value = "";
+                    document.getElementById("ph-mk-xac-nhan").value = "";
+                    document.getElementById("ph-canh-bao-doi-mk").classList.add("an-di");
+                    document.getElementById("ph-khu-vuc-du-lieu").classList.remove("an-di");
+                    if (cacBeTrongGiaDinh.length === 0) {
+                        await taiDanhSachConCuaPhuHuynh();
+                    }
+                }
+            } catch (loi) {
+                theThongBao.innerText = "Không kết nối được máy chủ khi đổi mật khẩu.";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            ["ph-so-dien-thoai", "ph-mat-khau"].forEach(function(id) {
+                let el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener("keydown", function(e) {
+                        if (e.key === "Enter") dangNhapPhuHuynh();
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

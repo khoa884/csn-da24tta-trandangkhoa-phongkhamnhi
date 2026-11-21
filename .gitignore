@@ -1,0 +1,13 @@
+# Cau hinh ket noi nhay cam & bien moi truong
+scr/config/database.properties
+.env
+*.env
+
+# Tep ma may Java bien dich tu dong & file tam he thong
+*.class
+*.log
+~$*.doc
+~$*.docx
+~$*.pptx
+.DS_Store
+Thumbs.db

@@ -1,0 +1,82 @@
+// Sơ đồ cơ sở dữ liệu Quản lý Phòng khám Nhi (dbdiagram.io)
+
+Table tai_khoan {
+  ma_tai_khoan int [pk, increment]
+  ten_dang_nhap varchar(50) [unique, not null]
+  mat_khau varchar(255) [not null] // PBKDF2WithHmacSHA256 (600.000 vòng + salt 16 byte), không khoảng trắng đầu/cuối
+  ho_ten varchar(100) [not null]
+  vai_tro varchar(20) [not null] // QUAN_TRI, BAC_SI, LE_TAN, PHU_HUYNH
+  so_lan_sai int [default: 0]
+  trang_thai_khoa int [default: 0] // 0: hoạt động, 1: tạm khóa 15 phút do sai >= 5 lần
+  khoa_den_luc datetime // null nếu không khóa hoặc khóa thủ công
+  phai_doi_mat_khau int [default: 0] // 1: bắt đổi mật khẩu ở lần đăng nhập đầu
+}
+
+Table phu_huynh {
+  ma_phu_huynh int [pk, increment]
+  ho_ten_phu_huynh varchar(100) [not null]
+  so_dien_thoai varchar(15) [unique, not null]
+  dia_chi varchar(255)
+  ma_tai_khoan int [unique, ref: - tai_khoan.ma_tai_khoan]
+}
+
+Table benh_nhi {
+  ma_benh_nhi int [pk, increment]
+  ho_ten_be varchar(100) [not null]
+  ngay_sinh date [not null] // Lịch thực ISO (0 đến 18 tuổi, không vượt quá ngày hiện tại)
+  gioi_tinh varchar(10) [not null]
+  tien_su_benh text
+  ma_phu_huynh int [not null, ref: > phu_huynh.ma_phu_huynh]
+}
+
+Table lich_hen {
+  ma_lich_hen int [pk, increment]
+  ma_benh_nhi int [not null, ref: > benh_nhi.ma_benh_nhi]
+  ma_bac_si int [not null, ref: > tai_khoan.ma_tai_khoan]
+  ngay_hen date [not null] // Từ ngày hiện tại trở đi (không đặt lùi quá khứ)
+  gio_hen varchar(10) [not null]
+  ly_do_kham varchar(255)
+  trang_thai varchar(30) [default: 'Chờ khám']
+
+  indexes {
+    (ma_bac_si, ngay_hen, gio_hen) [name: 'idx_lich_hen_bac_si_ngay_gio']
+  }
+}
+
+Table thuoc {
+  ma_thuoc int [pk, increment]
+  ten_thuoc varchar(150) [not null]
+  don_vi_tinh varchar(30) [not null]
+  don_gia decimal(12,2) [not null]
+  cach_dung_mac_dinh varchar(255)
+  so_luong_ton int [default: 0]
+}
+
+Table phieu_kham {
+  ma_phieu_kham int [pk, increment]
+  ma_benh_nhi int [not null, ref: > benh_nhi.ma_benh_nhi]
+  ma_bac_si int [not null, ref: > tai_khoan.ma_tai_khoan]
+  ngay_kham datetime [not null, default: `CURRENT_TIMESTAMP`]
+  can_nang_kg decimal(5,2) [not null]
+  trieu_chung varchar(255) [not null]
+  chan_doan varchar(255) [not null]
+  loi_dan_bac_si text
+  tien_kham decimal(12,2) [default: 100000]
+  tien_thuoc decimal(12,2) [default: 0]
+  tong_vien_phi decimal(12,2) [default: 100000]
+  trang_thai_phieu varchar(50) [default: 'Đã khám (Chờ thu tiền)']
+
+  indexes {
+    (trang_thai_phieu, ngay_kham) [name: 'idx_phieu_kham_trang_thai_ngay']
+  }
+}
+
+Table toa_thuoc {
+  ma_toa_thuoc int [pk, increment]
+  ma_phieu_kham int [not null, ref: > phieu_kham.ma_phieu_kham]
+  ma_thuoc int [not null, ref: > thuoc.ma_thuoc]
+  so_luong int [not null]
+  don_gia_luc_ke decimal(12,2) [not null] // Lưu cứng giá tại lúc kê để bảo toàn doanh thu cũ
+  lieu_luong_dung varchar(255) [not null]
+  thanh_tien decimal(12,2) [not null]
+}
